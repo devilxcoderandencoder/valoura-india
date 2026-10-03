@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Valoura India"
+description = "A responsive fashion and lifestyle storefront for Valoura India, showcasing brand collections and featured products."
+version = "1.0.0"
+id = "artifacts/valoura-india"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25099
+
+[services.development]
+run = "pnpm --filter @workspace/valoura-india run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/valoura-india", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/valoura-india/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25099"
+BASE_PATH = "/"
