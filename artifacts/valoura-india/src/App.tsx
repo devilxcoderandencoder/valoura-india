@@ -1,7 +1,6 @@
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
 import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Minus, Plus, Search, ShoppingBag, X } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import valouraLogo from '@assets/IMG_20261003_140328_916_1791016542514.jpg';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -72,7 +71,7 @@ function Home() {
             <a href="#story" className="nav-link">Our point of view</a>
           </nav>
           <a href="#" className="absolute left-1/2 -translate-x-1/2" aria-label="Valoura India home" data-testid="link-brand-logo">
-            <img src={valouraLogo} alt="Valoura India" className="h-[58px] w-[124px] object-cover object-center mix-blend-multiply md:h-[76px] md:w-[168px]" data-testid="img-brand-logo" />
+            <img src={`${import.meta.env.BASE_URL}valoura-logo.png`} alt="Valoura India" className="h-[58px] w-[129px] object-contain md:h-[76px] md:w-[169px]" data-testid="img-brand-logo" />
           </a>
           <div className="ml-auto flex items-center gap-5">
             <button onClick={() => { setSearchOpen(!searchOpen); setMenuOpen(false); }} aria-label={searchOpen ? 'Close search' : 'Search products'} className="hidden items-center gap-2 text-[11px] uppercase tracking-[.13em] sm:flex" data-testid="button-search">
