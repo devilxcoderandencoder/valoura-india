@@ -1,5 +1,5 @@
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Minus, Plus, Search, ShoppingBag, X } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Brush, House, Laptop, Menu, Minus, Plus, Search, Shirt, ShoppingBag, Smartphone, Sparkles, X } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -14,10 +14,20 @@ import {
 
 const queryClient = new QueryClient();
 
+const shopCategories = [
+  { label: 'For You', icon: Sparkles },
+  { label: 'Fashion', icon: Shirt },
+  { label: 'Mobiles', icon: Smartphone },
+  { label: 'Electronics', icon: Laptop },
+  { label: 'Beauty', icon: Brush },
+  { label: 'Home', icon: House },
+];
+
 function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('For You');
   const [query, setQuery] = useState('');
   const [bag, setBag] = useState<Record<number, number>>({});
   const [email, setEmail] = useState('');
@@ -26,11 +36,14 @@ function Home() {
 
   // Editable sample catalog — replace names, prices and descriptions with approved product data.
   const products = [
-    { id: 1, name: 'The Nila carryall', type: 'Everyday objects', price: 2890, art: 'art-bag', mark: 'New shape' },
-    { id: 2, name: 'Sunday vessel no. 02', type: 'Objects for home', price: 1650, art: 'art-vase', mark: 'A little ritual' },
-    { id: 3, name: 'Afterglow scarf', type: 'Wear it your way', price: 2190, art: 'art-scarf', mark: 'Colour study' },
-    { id: 4, name: 'Soft light table lamp', type: 'Objects for home', price: 4350, art: 'art-lamp', mark: 'Just landed' },
+    { id: 1, name: 'The Nila carryall', type: 'Everyday objects', price: 2890, art: 'art-bag', mark: 'New shape', categories: ['Fashion'] },
+    { id: 2, name: 'Sunday vessel no. 02', type: 'Objects for home', price: 1650, art: 'art-vase', mark: 'A little ritual', categories: ['Home'] },
+    { id: 3, name: 'Afterglow scarf', type: 'Wear it your way', price: 2190, art: 'art-scarf', mark: 'Colour study', categories: ['Fashion'] },
+    { id: 4, name: 'Soft light table lamp', type: 'Objects for home', price: 4350, art: 'art-lamp', mark: 'Just landed', categories: ['Electronics', 'Home'] },
   ];
+  const visibleProducts = activeCategory === 'For You'
+    ? products
+    : products.filter((product) => product.categories.includes(activeCategory));
   const searchResults = useMemo(() => products.filter((product) => `${product.name} ${product.type}`.toLowerCase().includes(query.toLowerCase())), [query]);
   const itemCount = Object.values(bag).reduce((sum, quantity) => sum + quantity, 0);
   const subtotal = products.reduce((sum, product) => sum + product.price * (bag[product.id] || 0), 0);
@@ -66,7 +79,7 @@ function Home() {
             {menuOpen ? <X size={20} /> : <Menu size={20} />} <span>{menuOpen ? 'Close' : 'Menu'}</span>
           </button>
           <nav className="hidden items-center gap-8 md:flex">
-            <a href="#shop" className="nav-link">Shop all</a>
+            <a href="#shop" onClick={() => setActiveCategory('For You')} className="nav-link">Shop all</a>
             <a href="#edits" className="nav-link">The edits</a>
             <a href="#story" className="nav-link">Our point of view</a>
           </nav>
@@ -83,7 +96,7 @@ function Home() {
           </div>
         </div>
         {menuOpen && <nav className="absolute inset-x-0 top-full z-40 border-b border-[#d9d0c3] bg-[#f5f0e7] px-6 py-7 shadow-xl md:hidden" aria-label="Mobile navigation">
-          {['Shop all', 'The edits', 'Our point of view'].map((label, index) => <a key={label} href={['#shop', '#edits', '#story'][index]} onClick={closePanels} className="flex items-center justify-between border-b border-[#d9d0c3] py-4 font-serif text-2xl">{label}<ArrowUpRight size={18} /></a>)}
+          {['Shop all', 'The edits', 'Our point of view'].map((label, index) => <a key={label} href={['#shop', '#edits', '#story'][index]} onClick={() => { closePanels(); if (label === 'Shop all') setActiveCategory('For You'); }} className="flex items-center justify-between border-b border-[#d9d0c3] py-4 font-serif text-2xl">{label}<ArrowUpRight size={18} /></a>)}
           <button onClick={() => { setSearchOpen(true); setMenuOpen(false); }} className="mt-5 flex items-center gap-3 text-sm"><Search size={18} /> Search the collection</button>
         </nav>}
         {searchOpen && <div className="absolute inset-x-0 top-full z-40 border-b border-[#d9d0c3] bg-[#f5f0e7] px-5 pb-7 pt-4 shadow-xl sm:px-10">
@@ -95,6 +108,27 @@ function Home() {
         </div>}
       </header>
 
+      <nav className="category-scroll border-b border-[#d9d0c3] bg-[#f5f0e7]" aria-label="Shop categories">
+        <div className="mx-auto flex max-w-[1440px] snap-x snap-mandatory items-stretch overflow-x-auto px-2 sm:px-8 md:justify-center lg:px-14">
+          {shopCategories.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => {
+                setActiveCategory(label);
+                document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              aria-pressed={activeCategory === label}
+              className={`flex w-[76px] flex-none snap-center flex-col items-center gap-1.5 border-b-2 py-3 text-[#817268] transition-colors hover:text-[#34241f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#cf4c32] md:w-[108px] md:gap-2 md:py-4 ${activeCategory === label ? 'border-[#cf4c32] text-[#34241f]' : 'border-transparent'}`}
+              data-testid={`button-category-${label.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
+              <span className="whitespace-nowrap text-[9px] uppercase tracking-[.08em] sm:text-[10px]">{label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+
       <main>
         <section className="mx-auto grid max-w-[1440px] px-4 pt-4 sm:px-7 sm:pt-7 lg:grid-cols-[.88fr_1.12fr] lg:gap-4">
           <div className="relative flex min-h-[410px] flex-col justify-between overflow-hidden bg-[#e6d9c8] px-7 py-8 sm:min-h-[490px] sm:px-11 sm:py-12 lg:min-h-[630px] lg:px-14 lg:py-14">
@@ -103,7 +137,7 @@ function Home() {
               <p className="mb-3 text-[10px] uppercase tracking-[.18em] text-[#68564b]">For the beautifully ordinary</p>
               <h1 className="serif max-w-[580px] text-[clamp(3.35rem,8vw,7.7rem)] leading-[.91] tracking-[-.065em]">Make room<br />for <em className="font-normal text-[#cf4c32]">wonder.</em></h1>
               <p className="mt-7 max-w-[330px] text-sm leading-6 text-[#63544c] sm:text-base">Little discoveries for how you dress, gather and make a place your own.</p>
-              <a href="#shop" className="mt-8 inline-flex items-center gap-3 border-b border-[#34241f] pb-2 text-[11px] uppercase tracking-[.16em] transition-colors hover:border-[#cf4c32] hover:text-[#cf4c32]">Find your new favourite <ArrowRight size={16} /></a>
+              <a href="#shop" onClick={() => setActiveCategory('For You')} className="mt-8 inline-flex items-center gap-3 border-b border-[#34241f] pb-2 text-[11px] uppercase tracking-[.16em] transition-colors hover:border-[#cf4c32] hover:text-[#cf4c32]">Find your new favourite <ArrowRight size={16} /></a>
             </div>
             <div className="relative z-10 mt-10 flex items-end justify-between text-[10px] uppercase tracking-[.15em] text-[#68564b]"><span>Vol. 01 — Little pleasures</span><span>01 / 04</span></div>
             <span aria-hidden="true" className="serif absolute -bottom-12 -right-2 text-[190px] leading-none text-[#d9c4ad] opacity-60 sm:text-[260px]">V</span>
@@ -126,17 +160,22 @@ function Home() {
 
         <section id="shop" className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-14">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-5 sm:mb-12">
-            <div><p className="mb-3 text-[10px] uppercase tracking-[.2em] text-[#cf4c32]">A few good finds</p><h2 className="serif text-4xl tracking-[-.04em] sm:text-6xl">Meet the new things.</h2></div>
+            <div><p className="mb-3 text-[10px] uppercase tracking-[.2em] text-[#cf4c32]">{activeCategory === 'For You' ? 'A few good finds' : `${activeCategory} edit`}</p><h2 className="serif text-4xl tracking-[-.04em] sm:text-6xl">{activeCategory === 'For You' ? 'Meet the new things.' : `Explore ${activeCategory.toLowerCase()}.`}</h2></div>
             <a href="#edits" className="group flex items-center gap-2 border-b border-[#34241f] pb-2 text-[10px] uppercase tracking-[.15em]">See what catches your eye <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></a>
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 lg:grid-cols-4">
-            {products.map((product, index) => <article key={product.id} className="reveal group" style={{ animationDelay: `${index * 90}ms` }} data-testid={`card-product-${product.id}`}>
+            {visibleProducts.map((product, index) => <article key={product.id} className="reveal group" style={{ animationDelay: `${index * 90}ms` }} data-testid={`card-product-${product.id}`}>
               <div className={`product-art ${product.art} relative aspect-[.78]`}>
                 <span className="absolute left-3 top-3 z-10 bg-[#f5f0e7]/90 px-2.5 py-1.5 text-[9px] uppercase tracking-[.12em] sm:left-4 sm:top-4">{product.mark}</span>
                 <button onClick={() => { addToBag(product.id); setCartOpen(true); }} aria-label={`Add ${product.name} to bag`} className="absolute bottom-3 right-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-[#f5f0e7] transition-colors hover:bg-[#cf4c32] hover:text-[#fff8ee] sm:bottom-4 sm:right-4" data-testid={`button-add-${product.id}`}><Plus size={19} strokeWidth={1.5} /></button>
               </div>
               <div className="flex items-start justify-between gap-2 pt-4"><div><p className="text-[9px] uppercase tracking-[.13em] text-[#817268] sm:text-[10px]">{product.type}</p><h3 className="serif mt-1 text-lg leading-tight sm:text-xl">{product.name}</h3></div><span className="pt-4 text-xs sm:text-sm">{formatPrice(product.price)}</span></div>
             </article>)}
+            {!visibleProducts.length && <div className="col-span-full border border-[#d9d0c3] px-6 py-12 text-center sm:py-16" data-testid="empty-category">
+              <p className="serif text-2xl">This edit is taking shape.</p>
+              <p className="mt-2 text-sm text-[#817268]">There are no sample products in this category yet.</p>
+              <button onClick={() => setActiveCategory('For You')} className="mt-5 border-b border-[#34241f] pb-1 text-[10px] uppercase tracking-[.15em]" data-testid="button-show-all-products">Explore all finds</button>
+            </div>}
           </div>
           <p className="mt-8 text-[10px] text-[#817268]">A small selection to begin with. The collection is always finding its shape.</p>
         </section>
@@ -185,7 +224,7 @@ function Home() {
         <div className="mx-auto max-w-[1440px]">
           <div className="flex flex-col justify-between gap-10 border-b border-[#76645a] pb-10 sm:flex-row sm:items-end">
             <div><a href="#" className="font-serif text-4xl tracking-[-.06em]">valoura<span className="text-[#e27255]">.</span></a><p className="mt-3 text-xs text-[#c9b9a9]">A little wonder for the everyday.</p></div>
-            <div className="flex gap-9 text-[10px] uppercase tracking-[.15em]"><a href="#shop" className="hover:text-[#e9a18a]">Shop</a><a href="#story" className="hover:text-[#e9a18a]">Our point of view</a><a href="#top" onClick={(event) => { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2 hover:text-[#e9a18a]">Back to top <ArrowDown size={13} className="rotate-180" /></a></div>
+            <div className="flex gap-9 text-[10px] uppercase tracking-[.15em]"><a href="#shop" onClick={() => setActiveCategory('For You')} className="hover:text-[#e9a18a]">Shop</a><a href="#story" className="hover:text-[#e9a18a]">Our point of view</a><a href="#top" onClick={(event) => { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2 hover:text-[#e9a18a]">Back to top <ArrowDown size={13} className="rotate-180" /></a></div>
           </div>
           <div className="flex flex-col justify-between gap-3 pt-5 text-[9px] uppercase tracking-[.14em] text-[#b8a79a] sm:flex-row"><span>Valoura India</span><span>© 2025 Valoura. Here for the little things.</span></div>
         </div>
