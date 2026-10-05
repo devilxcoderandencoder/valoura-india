@@ -56,6 +56,11 @@ function Home() {
     return next;
   });
   const closePanels = () => { setMenuOpen(false); setSearchOpen(false); };
+  const focusSearch = () => {
+    setMenuOpen(false);
+    setSearchOpen(true);
+    window.requestAnimationFrame(() => document.getElementById('store-search')?.focus());
+  };
 
   function subscribe(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,7 +93,7 @@ function Home() {
             <img src={`${import.meta.env.BASE_URL}valoura-logo.png`} alt="Valoura India" className="h-[58px] w-[129px] object-contain md:h-[76px] md:w-[169px]" data-testid="img-brand-logo" />
           </a>
           <div className="ml-auto flex items-center gap-5">
-            <button onClick={() => { setSearchOpen(!searchOpen); setMenuOpen(false); }} aria-label={searchOpen ? 'Close search' : 'Search products'} className="hidden items-center gap-2 text-[11px] uppercase tracking-[.13em] sm:flex" data-testid="button-search">
+            <button onClick={() => { if (searchOpen) setSearchOpen(false); else focusSearch(); }} aria-label={searchOpen ? 'Close search suggestions' : 'Search products'} className="hidden items-center gap-2 text-[11px] uppercase tracking-[.13em] sm:flex" data-testid="button-search">
               {searchOpen ? <X size={18} strokeWidth={1.5} /> : <Search size={18} strokeWidth={1.5} />} <span>{searchOpen ? 'Close' : 'Search'}</span>
             </button>
             <button onClick={() => setCartOpen(true)} aria-label={`Open bag, ${itemCount} items`} className="flex items-center gap-2 text-[11px] uppercase tracking-[.13em]" data-testid="button-open-bag">
@@ -98,16 +103,42 @@ function Home() {
         </div>
         {menuOpen && <nav className="absolute inset-x-0 top-full z-40 border-b border-[#d9d0c3] bg-[#f5f0e7] px-6 py-7 shadow-xl md:hidden" aria-label="Mobile navigation">
           {['Shop all', 'The edits', 'Our point of view'].map((label, index) => <a key={label} href={['#shop', '#edits', '#story'][index]} onClick={() => { closePanels(); if (label === 'Shop all') setActiveCategory('For You'); }} className="flex items-center justify-between border-b border-[#d9d0c3] py-4 font-serif text-2xl">{label}<ArrowUpRight size={18} /></a>)}
-          <button onClick={() => { setSearchOpen(true); setMenuOpen(false); }} className="mt-5 flex items-center gap-3 text-sm"><Search size={18} /> Search the collection</button>
+          <button onClick={focusSearch} className="mt-5 flex items-center gap-3 text-sm"><Search size={18} /> Search the collection</button>
         </nav>}
-        {searchOpen && <div className="absolute inset-x-0 top-full z-40 border-b border-[#d9d0c3] bg-[#f5f0e7] px-5 pb-7 pt-4 shadow-xl sm:px-10">
-          <label className="mx-auto flex max-w-3xl items-center gap-3 border-b border-[#34241f] py-3"><Search size={19} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="A colour, a feeling, a thing..." className="w-full bg-transparent text-base outline-none placeholder:text-[#9c8c7d]" aria-label="Search products" data-testid="input-search" /><button onClick={() => setQuery('')} aria-label="Clear search" className="text-xs uppercase tracking-wider">Clear</button></label>
-          <div className="mx-auto mt-4 max-w-3xl">
-            <p className="mb-3 text-[10px] uppercase tracking-[.18em] text-[#817268]">{query ? `${searchResults.length} things to explore` : 'A few things to start with'}</p>
-            {searchResults.length ? searchResults.map((product) => <button key={product.id} onClick={() => { setSearchOpen(false); document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); }} className="flex w-full items-center justify-between py-2 text-left text-sm" data-testid={`search-result-${product.id}`}><span>{product.name}</span><span>{formatPrice(product.price)}</span></button>) : <p className="py-3 text-sm text-[#817268]">Nothing here just yet. Try another word.</p>}
-          </div>
-        </div>}
       </header>
+
+      <section className="relative z-20 border-b border-[#d9d0c3] bg-[#f5f0e7] px-4 py-3 sm:px-8" aria-label="Product search">
+        <div className="relative mx-auto max-w-3xl">
+          <form
+            role="search"
+            onSubmit={(event) => { event.preventDefault(); setSearchOpen(true); }}
+            className="flex h-12 items-center gap-3 rounded-xl border border-[#e5ddd2] bg-white px-4 shadow-sm transition-shadow focus-within:shadow-md sm:h-14"
+          >
+            <Search size={20} strokeWidth={1.7} className="shrink-0 text-[#68564b]" aria-hidden="true" />
+            <input
+              id="store-search"
+              type="search"
+              autoComplete="off"
+              value={query}
+              onFocus={() => setSearchOpen(true)}
+              onChange={(event) => { setQuery(event.target.value); setSearchOpen(true); }}
+              onKeyDown={(event) => { if (event.key === 'Escape') setSearchOpen(false); }}
+              placeholder="Search products, colours and more..."
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#9c8c7d] sm:text-base"
+              aria-label="Search products"
+              aria-expanded={searchOpen}
+              aria-controls="search-suggestions"
+              data-testid="input-search"
+            />
+            {query && <button type="button" onClick={() => { setQuery(''); setSearchOpen(true); }} aria-label="Clear search" className="shrink-0 text-[10px] uppercase tracking-wider text-[#817268] hover:text-[#34241f]" data-testid="button-clear-search">Clear</button>}
+            {searchOpen && <button type="button" onClick={() => setSearchOpen(false)} aria-label="Close search suggestions" className="shrink-0 rounded-full p-1 text-[#817268] hover:bg-[#f0e9df] hover:text-[#34241f]" data-testid="button-close-search"><X size={17} /></button>}
+          </form>
+          {searchOpen && <div id="search-suggestions" className="absolute inset-x-0 top-full z-40 mt-2 max-h-[55vh] overflow-y-auto rounded-xl border border-[#e5ddd2] bg-[#fffdfa] p-4 shadow-xl sm:p-5">
+            <p className="mb-2 text-[10px] uppercase tracking-[.18em] text-[#817268]">{query ? `${searchResults.length} things to explore` : 'A few things to start with'}</p>
+            {searchResults.length ? searchResults.map((product) => <button key={product.id} onClick={() => { setActiveCategory('For You'); setSearchOpen(false); document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); }} className="flex w-full items-center justify-between gap-4 border-b border-[#eee7de] py-3 text-left text-sm last:border-b-0" data-testid={`search-result-${product.id}`}><span>{product.name}</span><span className="shrink-0 text-[#817268]">{formatPrice(product.price)}</span></button>) : <p className="py-3 text-sm text-[#817268]">Nothing here just yet. Try another word.</p>}
+          </div>}
+        </div>
+      </section>
 
       <nav className="category-scroll border-b border-[#d9d0c3] bg-[#f5f0e7]" aria-label="Shop categories">
         <div className="mx-auto flex max-w-[1440px] snap-x snap-mandatory items-stretch overflow-x-auto px-2 sm:px-8 md:justify-center lg:px-14">
