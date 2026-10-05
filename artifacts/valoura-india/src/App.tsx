@@ -1,5 +1,5 @@
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, Brush, House, Laptop, Menu, Minus, Plus, Search, Shirt, ShoppingBag, Smartphone, Sparkles, X } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Brush, House, Laptop, Menu, Minus, Plus, Search, Shirt, ShoppingBag, ShoppingCart, Smartphone, Sparkles, UserRound, X } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -26,6 +26,7 @@ const shopCategories = [
 function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('For You');
   const [query, setQuery] = useState('');
@@ -220,7 +221,7 @@ function Home() {
         </section>
       </main>
 
-      <footer className="bg-[#34241f] px-5 py-10 text-[#f5f0e7] sm:px-8 sm:py-14 lg:px-14">
+      <footer className="footer-safe-space bg-[#34241f] px-5 py-10 text-[#f5f0e7] sm:px-8 sm:py-14 lg:px-14">
         <div className="mx-auto max-w-[1440px]">
           <div className="flex flex-col justify-between gap-10 border-b border-[#76645a] pb-10 sm:flex-row sm:items-end">
             <div><a href="#" className="font-serif text-4xl tracking-[-.06em]">valoura<span className="text-[#e27255]">.</span></a><p className="mt-3 text-xs text-[#c9b9a9]">A little wonder for the everyday.</p></div>
@@ -229,6 +230,72 @@ function Home() {
           <div className="flex flex-col justify-between gap-3 pt-5 text-[9px] uppercase tracking-[.14em] text-[#b8a79a] sm:flex-row"><span>Valoura India</span><span>© 2025 Valoura. Here for the little things.</span></div>
         </div>
       </footer>
+
+      <nav className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-30 mx-auto flex max-w-[520px] items-center rounded-full border border-[#e8e0d6] bg-[#fffdfa]/95 p-1.5 shadow-[0_4px_20px_rgba(52,36,31,0.12)] backdrop-blur md:hidden" aria-label="Bottom navigation" data-testid="bottom-navigation">
+        <button
+          type="button"
+          onClick={() => {
+            setAccountOpen(false);
+            setCartOpen(false);
+            setMenuOpen(false);
+            setSearchOpen(false);
+            setActiveCategory('For You');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          aria-current={!accountOpen && !cartOpen ? 'page' : undefined}
+          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${!accountOpen && !cartOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
+          data-testid="bottom-nav-home"
+        >
+          <House size={21} strokeWidth={1.7} aria-hidden="true" />
+          <span>Home</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setAccountOpen(true);
+            setCartOpen(false);
+            setMenuOpen(false);
+            setSearchOpen(false);
+          }}
+          aria-current={accountOpen ? 'page' : undefined}
+          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${accountOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
+          data-testid="bottom-nav-account"
+        >
+          <UserRound size={21} strokeWidth={1.7} aria-hidden="true" />
+          <span>Account</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setCartOpen(true);
+            setAccountOpen(false);
+          }}
+          aria-current={cartOpen ? 'page' : undefined}
+          aria-label={`Cart, ${itemCount} items`}
+          className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${cartOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
+          data-testid="bottom-nav-cart"
+        >
+          <span className="relative">
+            <ShoppingCart size={21} strokeWidth={1.7} aria-hidden="true" />
+            {itemCount > 0 && <span className="absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#cf4c32] px-1 text-[9px] leading-none text-white">{itemCount}</span>}
+          </span>
+          <span>Cart</span>
+        </button>
+      </nav>
+
+      {accountOpen && <>
+        <button className="fixed inset-0 z-40 bg-[#34241f]/35 md:hidden" aria-label="Close account panel" onClick={() => setAccountOpen(false)} />
+        <section className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-lg rounded-2xl border border-[#e8e0d6] bg-[#fffdfa] p-6 shadow-2xl md:hidden" role="dialog" aria-modal="true" aria-labelledby="account-panel-title" data-testid="account-panel">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[.16em] text-[#cf4c32]">Your Valoura</p>
+              <h2 id="account-panel-title" className="serif mt-2 text-3xl">Account</h2>
+            </div>
+            <button onClick={() => setAccountOpen(false)} aria-label="Close account panel" className="rounded-full p-2 text-[#817268] hover:bg-[#f0e9df] hover:text-[#34241f]" data-testid="button-close-account"><X size={20} /></button>
+          </div>
+          <p className="mt-4 text-sm leading-6 text-[#817268]">Account sign-in isn’t available in this preview yet.</p>
+        </section>
+      </>}
 
       {(cartOpen || (menuOpen && window.innerWidth < 768)) && <button className="fixed inset-0 z-40 cursor-default bg-[#34241f]/35" aria-label="Close overlay" onClick={() => { setCartOpen(false); setMenuOpen(false); }} />}
       <aside className={`fixed right-0 top-0 z-50 flex h-[100dvh] w-full max-w-[470px] flex-col bg-[#f5f0e7] shadow-2xl transition-transform duration-300 ${cartOpen ? 'translate-x-0' : 'translate-x-full'}`} aria-label="Shopping bag" aria-hidden={!cartOpen}>

@@ -491,6 +491,8 @@ body { font-family: var(--app-font-sans); background: #f5f0e7; color: #34241f; }
 .art-lamp::after { width: 3px; height: 40%; background: #71546f; right: 49%; top: 52%; border: 0; border-radius: 0; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .category-scroll { scrollbar-width: none; }
+.footer-safe-space { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .footer-safe-space { padding-bottom: 3.5rem; } }
 .nav-link { position: relative; font-size: 10px; text-transform: uppercase; letter-spacing: .14em; }
 .nav-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 1px; background: #cf4c32; transform: scaleX(0); transform-origin: left; transition: transform .25s ease; }
 .nav-link:hover::after { transform: scaleX(1); }
