@@ -1,5 +1,5 @@
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, Brush, House, Laptop, Menu, Minus, Plus, Search, Shirt, ShoppingBag, ShoppingCart, Smartphone, Sparkles, UserRound, X } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Brush, ClipboardList, House, Laptop, Menu, Minus, Plus, Search, Shirt, ShoppingBag, ShoppingCart, Smartphone, Sparkles, UserRound, X } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -27,6 +27,7 @@ function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [ordersOpen, setOrdersOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('For You');
   const [query, setQuery] = useState('');
@@ -267,14 +268,15 @@ function Home() {
           type="button"
           onClick={() => {
             setAccountOpen(false);
+            setOrdersOpen(false);
             setCartOpen(false);
             setMenuOpen(false);
             setSearchOpen(false);
             setActiveCategory('For You');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          aria-current={!accountOpen && !cartOpen ? 'page' : undefined}
-          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${!accountOpen && !cartOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
+          aria-current={!accountOpen && !ordersOpen && !cartOpen ? 'page' : undefined}
+          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${!accountOpen && !ordersOpen && !cartOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
           data-testid="bottom-nav-home"
         >
           <House size={21} strokeWidth={1.7} aria-hidden="true" />
@@ -283,7 +285,24 @@ function Home() {
         <button
           type="button"
           onClick={() => {
+            setOrdersOpen(true);
+            setAccountOpen(false);
+            setCartOpen(false);
+            setMenuOpen(false);
+            setSearchOpen(false);
+          }}
+          aria-current={ordersOpen ? 'page' : undefined}
+          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${ordersOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
+          data-testid="bottom-nav-orders"
+        >
+          <ClipboardList size={21} strokeWidth={1.7} aria-hidden="true" />
+          <span>Orders</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
             setAccountOpen(true);
+            setOrdersOpen(false);
             setCartOpen(false);
             setMenuOpen(false);
             setSearchOpen(false);
@@ -300,6 +319,7 @@ function Home() {
           onClick={() => {
             setCartOpen(true);
             setAccountOpen(false);
+            setOrdersOpen(false);
           }}
           aria-current={cartOpen ? 'page' : undefined}
           aria-label={`Cart, ${itemCount} items`}
@@ -325,6 +345,22 @@ function Home() {
             <button onClick={() => setAccountOpen(false)} aria-label="Close account panel" className="rounded-full p-2 text-[#817268] hover:bg-[#f0e9df] hover:text-[#34241f]" data-testid="button-close-account"><X size={20} /></button>
           </div>
           <p className="mt-4 text-sm leading-6 text-[#817268]">Account sign-in isn’t available in this preview yet.</p>
+        </section>
+      </>}
+
+      {ordersOpen && <>
+        <button className="fixed inset-0 z-40 bg-[#34241f]/35 md:hidden" aria-label="Close orders panel" onClick={() => setOrdersOpen(false)} />
+        <section className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-lg rounded-2xl border border-[#e8e0d6] bg-[#fffdfa] p-6 shadow-2xl md:hidden" role="dialog" aria-modal="true" aria-labelledby="orders-panel-title" data-testid="orders-panel">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[.16em] text-[#cf4c32]">Your Valoura</p>
+              <h2 id="orders-panel-title" className="serif mt-2 text-3xl">Orders</h2>
+            </div>
+            <button onClick={() => setOrdersOpen(false)} aria-label="Close orders panel" className="rounded-full p-2 text-[#817268] hover:bg-[#f0e9df] hover:text-[#34241f]" data-testid="button-close-orders"><X size={20} /></button>
+          </div>
+          <p className="serif mt-5 text-xl">Nothing to track yet.</p>
+          <p className="mt-2 text-sm leading-6 text-[#817268]">Checkout isn’t available in this preview, so there are no orders to show.</p>
+          <button onClick={() => { setOrdersOpen(false); document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); }} className="mt-5 border-b border-[#34241f] pb-1 text-[10px] uppercase tracking-[.15em]" data-testid="button-orders-shop">Explore the collection</button>
         </section>
       </>}
 
