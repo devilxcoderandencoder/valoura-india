@@ -1,5 +1,5 @@
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, Brush, ClipboardList, House, Laptop, Menu, Minus, Plus, Search, Shirt, ShoppingBag, ShoppingCart, Smartphone, Sparkles, UserRound, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Brush, ClipboardList, House, Laptop, Menu, Minus, Plus, Search, Shirt, ShoppingBag, ShoppingCart, Smartphone, Sparkles, UserRound, X } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -27,7 +27,7 @@ function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [ordersOpen, setOrdersOpen] = useState(false);
+  const [activePage, setActivePage] = useState<'home' | 'orders'>('home');
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('For You');
   const [query, setQuery] = useState('');
@@ -77,6 +77,7 @@ function Home() {
 
   return (
     <div className="grain min-h-[100dvh] overflow-x-hidden">
+      {activePage === 'home' ? <>
       <div className="bg-[#34241f] px-4 py-2 text-center text-[10px] font-medium uppercase tracking-[.17em] text-[#f5f0e7] sm:text-[11px]">
         A little something good, for the everyday
       </div>
@@ -262,21 +263,33 @@ function Home() {
           <div className="flex flex-col justify-between gap-3 pt-5 text-[9px] uppercase tracking-[.14em] text-[#b8a79a] sm:flex-row"><span>Valoura India</span><span>© 2025 Valoura. Here for the little things.</span></div>
         </div>
       </footer>
+      </> : <OrdersPage
+        onBack={() => {
+          setActivePage('home');
+          window.scrollTo(0, 0);
+        }}
+        onShop={() => {
+          setActivePage('home');
+          setActiveCategory('For You');
+          window.scrollTo(0, 0);
+          window.requestAnimationFrame(() => document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }));
+        }}
+      />}
 
       <nav className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-30 mx-auto flex max-w-[520px] items-center rounded-full border border-[#e8e0d6] bg-[#fffdfa]/95 p-1.5 shadow-[0_4px_20px_rgba(52,36,31,0.12)] backdrop-blur md:hidden" aria-label="Bottom navigation" data-testid="bottom-navigation">
         <button
           type="button"
           onClick={() => {
             setAccountOpen(false);
-            setOrdersOpen(false);
             setCartOpen(false);
             setMenuOpen(false);
             setSearchOpen(false);
+            setActivePage('home');
             setActiveCategory('For You');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo(0, 0);
           }}
-          aria-current={!accountOpen && !ordersOpen && !cartOpen ? 'page' : undefined}
-          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${!accountOpen && !ordersOpen && !cartOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
+          aria-current={activePage === 'home' && !accountOpen && !cartOpen ? 'page' : undefined}
+          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${activePage === 'home' && !accountOpen && !cartOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
           data-testid="bottom-nav-home"
         >
           <House size={21} strokeWidth={1.7} aria-hidden="true" />
@@ -285,14 +298,15 @@ function Home() {
         <button
           type="button"
           onClick={() => {
-            setOrdersOpen(true);
+            setActivePage('orders');
             setAccountOpen(false);
             setCartOpen(false);
             setMenuOpen(false);
             setSearchOpen(false);
+            window.scrollTo(0, 0);
           }}
-          aria-current={ordersOpen ? 'page' : undefined}
-          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${ordersOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
+          aria-current={activePage === 'orders' && !accountOpen && !cartOpen ? 'page' : undefined}
+          className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full text-[10px] transition-colors ${activePage === 'orders' && !accountOpen && !cartOpen ? 'bg-[#f0e9df] text-[#cf4c32]' : 'text-[#817268] hover:text-[#34241f]'}`}
           data-testid="bottom-nav-orders"
         >
           <ClipboardList size={21} strokeWidth={1.7} aria-hidden="true" />
@@ -302,7 +316,6 @@ function Home() {
           type="button"
           onClick={() => {
             setAccountOpen(true);
-            setOrdersOpen(false);
             setCartOpen(false);
             setMenuOpen(false);
             setSearchOpen(false);
@@ -319,7 +332,6 @@ function Home() {
           onClick={() => {
             setCartOpen(true);
             setAccountOpen(false);
-            setOrdersOpen(false);
           }}
           aria-current={cartOpen ? 'page' : undefined}
           aria-label={`Cart, ${itemCount} items`}
@@ -348,22 +360,6 @@ function Home() {
         </section>
       </>}
 
-      {ordersOpen && <>
-        <button className="fixed inset-0 z-40 bg-[#34241f]/35 md:hidden" aria-label="Close orders panel" onClick={() => setOrdersOpen(false)} />
-        <section className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-lg rounded-2xl border border-[#e8e0d6] bg-[#fffdfa] p-6 shadow-2xl md:hidden" role="dialog" aria-modal="true" aria-labelledby="orders-panel-title" data-testid="orders-panel">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[10px] uppercase tracking-[.16em] text-[#cf4c32]">Your Valoura</p>
-              <h2 id="orders-panel-title" className="serif mt-2 text-3xl">Orders</h2>
-            </div>
-            <button onClick={() => setOrdersOpen(false)} aria-label="Close orders panel" className="rounded-full p-2 text-[#817268] hover:bg-[#f0e9df] hover:text-[#34241f]" data-testid="button-close-orders"><X size={20} /></button>
-          </div>
-          <p className="serif mt-5 text-xl">Nothing to track yet.</p>
-          <p className="mt-2 text-sm leading-6 text-[#817268]">Checkout isn’t available in this preview, so there are no orders to show.</p>
-          <button onClick={() => { setOrdersOpen(false); document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' }); }} className="mt-5 border-b border-[#34241f] pb-1 text-[10px] uppercase tracking-[.15em]" data-testid="button-orders-shop">Explore the collection</button>
-        </section>
-      </>}
-
       {(cartOpen || (menuOpen && window.innerWidth < 768)) && <button className="fixed inset-0 z-40 cursor-default bg-[#34241f]/35" aria-label="Close overlay" onClick={() => { setCartOpen(false); setMenuOpen(false); }} />}
       <aside className={`fixed right-0 top-0 z-50 flex h-[100dvh] w-full max-w-[470px] flex-col bg-[#f5f0e7] shadow-2xl transition-transform duration-300 ${cartOpen ? 'translate-x-0' : 'translate-x-full'}`} aria-label="Shopping bag" aria-hidden={!cartOpen}>
         <div className="flex items-center justify-between border-b border-[#d9d0c3] px-6 py-5"><div><p className="text-[10px] uppercase tracking-[.18em] text-[#817268]">A good start</p><h2 className="serif mt-1 text-2xl">Your bag <span className="text-sm">({itemCount})</span></h2></div><button onClick={() => setCartOpen(false)} aria-label="Close bag" data-testid="button-close-bag"><X size={22} /></button></div>
@@ -378,6 +374,60 @@ function Home() {
         </>}
       </aside>
     </div>
+  );
+}
+
+function OrdersPage({ onBack, onShop }: { onBack: () => void; onShop: () => void }) {
+  const [query, setQuery] = useState('');
+  const [activeStatus, setActiveStatus] = useState('All');
+  const statuses = ['All', 'Processing', 'Shipped', 'Delivered'];
+
+  return (
+    <main className="min-h-[100dvh] bg-[#fffdfa] pb-32 md:pb-10" data-testid="orders-page">
+      <header className="border-b border-[#e8e0d6] bg-[#fffdfa]">
+        <div className="mx-auto flex h-[68px] max-w-2xl items-center gap-3 px-5 sm:px-6">
+          <button onClick={onBack} aria-label="Back to home" className="rounded-full p-2 text-[#34241f] transition-colors hover:bg-[#f0e9df]" data-testid="button-orders-back">
+            <ArrowLeft size={21} strokeWidth={1.7} />
+          </button>
+          <h1 className="text-lg font-semibold text-[#34241f]">My Orders</h1>
+        </div>
+      </header>
+      <div className="mx-auto max-w-2xl px-4 py-5 sm:px-6">
+        <div className="flex h-12 items-center gap-3 rounded-xl border border-[#e5ddd2] bg-white px-4 shadow-sm focus-within:border-[#b7a99a]">
+          <Search size={19} strokeWidth={1.7} className="shrink-0 text-[#68564b]" aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search your orders"
+            aria-label="Search your orders"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#9c8c7d]"
+            data-testid="input-orders-search"
+          />
+          {query && <button type="button" onClick={() => setQuery('')} className="text-[10px] uppercase tracking-wider text-[#817268]" aria-label="Clear order search">Clear</button>}
+        </div>
+        <div className="no-scrollbar mt-4 flex snap-x gap-2.5 overflow-x-auto pb-1" aria-label="Filter orders by status" data-testid="orders-status-filters">
+          {statuses.map((status) => <button
+            key={status}
+            type="button"
+            onClick={() => setActiveStatus(status)}
+            aria-pressed={activeStatus === status}
+            className={`shrink-0 rounded-xl border px-4 py-2 text-sm transition-colors ${activeStatus === status ? 'border-[#34241f] bg-[#34241f] text-[#fffdfa]' : 'border-[#e5ddd2] bg-white text-[#34241f] hover:bg-[#f5f0e7]'}`}
+            data-testid={`button-order-filter-${status.toLowerCase()}`}
+          >{status}</button>)}
+        </div>
+        <section className="mt-12 flex min-h-[42vh] flex-col items-center justify-center rounded-2xl border border-dashed border-[#e5ddd2] bg-[#fbf9f5] px-6 py-12 text-center" data-testid="orders-empty-state">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-[#f0e9df] text-[#cf4c32]">
+            <ShoppingBag size={25} strokeWidth={1.5} aria-hidden="true" />
+          </div>
+          <h2 className="serif mt-5 text-2xl">{query ? 'No matching orders' : activeStatus === 'All' ? 'No orders yet' : `No ${activeStatus.toLowerCase()} orders`}</h2>
+          <p className="mt-2 max-w-sm text-sm leading-6 text-[#817268]">
+            {query ? 'Try another search when you have order history.' : 'Checkout isn’t available in this preview, so there are no orders to show yet.'}
+          </p>
+          <button onClick={onShop} className="mt-6 border-b border-[#34241f] pb-1 text-[10px] uppercase tracking-[.15em] transition-colors hover:text-[#cf4c32]" data-testid="button-orders-shop">Explore the collection</button>
+        </section>
+      </div>
+    </main>
   );
 }
 
